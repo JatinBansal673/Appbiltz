@@ -12,14 +12,27 @@ export const Navbar = () => {
   console.log(themeData);
   return (
     <div className=''>
-      <nav className="bg-white dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-700 flex items-center p-3">
-        <ul className='flex gap-7 mx-[40vw]'>
+      <nav className="bg-white dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-700 flex items-center justify-between p-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
+            <span className="text-lg font-bold text-white">P</span>
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+              Portfolio
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Developer Dashboard
+            </p>
+          </div>
+        </div>
+        <ul className='flex gap-7'>
           <li><NavLink to="/">Home</NavLink></li>
           <li><NavLink to="/projects">Projects</NavLink></li>
           <li><NavLink to="/tasks">Tasks</NavLink></li>
           <li><NavLink to="/activity">Activity</NavLink></li>
         </ul>
-        <div className="flex items-center gap-2 py-2 ml-[-8vw]">
+        <div className="flex items-center gap-2 py-2">
           <button
             onClick={toggleTheme}
             className="relative flex items-center h-6 w-12 bg-gray-300 rounded-full p-1 transition-colors duration-300"
