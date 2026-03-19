@@ -111,13 +111,13 @@ const TaskBoard = () => {
   return (
     <div className="p-6 flex justify-center md:p-10">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-extrabold mb-8 tracking-tight">Task Board</h1>
-        <div className="flex gap-5 overflow-x-auto pb-4">
+        <h1 className="text-3xl font-bold mb-8 tracking-tight">Task Board</h1>
+        <div className="flex gap-5 overflow-x-auto pb-4 flex-wrap">
           {Object.keys(tasks).map(column => (
             <div
               key={column}
               ref={(el) => { if (el) columnRefs.current[column] = el; }}
-              className="w-80 min-h-[400px] shrink-0 border border-[#e2e8f0] p-4 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+              className="w-80 min-h-100 shrink-0 border border-[#e2e8f0] p-4 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">

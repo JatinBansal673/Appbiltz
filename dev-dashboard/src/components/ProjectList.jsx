@@ -36,8 +36,8 @@ const ProjectList = () => {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <header className="mb-12">
-          <h1 className="text-xl font-semibold tracking-tight">Project Manager</h1>
-          <p className="text-sm">Track and manage your development pipeline.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Project Manager</h1>
+          <p className="text-md">Track and manage your development pipeline.</p>
         </header>
 
         {/* Input Bar */}
@@ -85,7 +85,7 @@ const ProjectList = () => {
           {projects.map((project) => (
             <div
               key={project.id}
-              className="group relative p-5 rounded-xl shadow-[0_0_0_1px_rgba(0,0,0,.08),0_1px_2px_rgba(0,0,0,.04)] hover:shadow-[0_0_0_1px_rgba(0,0,0,.12),0_8px_16px_-4px_rgba(0,0,0,.08)] transition-all duration-300 border"
+              className="group relative p-5 rounded-xl shadow-[0_0_0_1px_rgba(0,0,0,.08),0_1px_2px_rgba(0,0,0,.04)] hover:shadow-[0_0_0_1px_rgba(0,0,0,.12),0_8px_16px_-4px_rgba(0,0,0,.08)] transition-all duration-300 border border-[#e2e8f0] bg-[#fafbfc]  hover:bg-[#f1f5f9]"
             >
               <div className="flex justify-between items-start mb-3">
                 <span
@@ -100,24 +100,24 @@ const ProjectList = () => {
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => handleEdit(project.id)}
-                    className="text-[11px] font-medium transition-colors"
+                    className="text-[11px] font-medium transition-colors text-[#64748b]  hover:text-[#1e293b]"
                   >
-                    Edit
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                   </button>
                   <button
                     onClick={() => handleDelete(project.id)}
-                    className="text-[11px] font-medium transition-colors"
+                    className="text-[11px] font-medium transition-colors text-[#64748b] hover:text-[#dc2626]"
                   >
-                    Delete
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                   </button>
                 </div>
               </div>
 
-              <h3 className="text-sm font-semibold mb-1">{project.name}</h3>
+              <h3 className="text-sm font-semibold mb-1 text-[#1e293b]">{project.name}</h3>
               {(!project.description || project.description.length<20)?
-                <p className="text-sm leading-relaxed mb-4 line-clamp-2">{project.description}</p>
+                <p className="text-sm leading-relaxed mb-4 line-clamp-2 text-[#64748b]">{project.description}</p>
                 :
-                <p className="text-sm leading-relaxed mb-4">
+                <p className="text-sm leading-relaxed mb-4 text-[#64748b]">
                   {expanded ? project.description : `${project.description.slice(0, 20)}...`}
                   <button
                     onClick={() => setExpanded(!expanded)}
@@ -129,9 +129,9 @@ const ProjectList = () => {
               }
 
               {project.techStack && (
-                <div className="pt-4 border-t flex flex-wrap gap-1">
+                <div className="pt-4 border-t border-gray-200 flex flex-wrap gap-1">
                   {project.techStack.split(',').map((tech, i) => (
-                    <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-md dark:bg-gray-600">
+                    <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-gray-300 dark:bg-gray-600">
                       {tech.trim()}
                     </span>
                   ))}

@@ -58,7 +58,7 @@ const GithubProfile = () => {
   );
 
   return (
-    <div className="flex flex-col gap-4 mb-8">
+    <div className="flex flex-col gap-4 mb-8 p-6 mx-auto">
 
       <h2 className="text-2xl font-bold">GitHub Profile</h2>
 
@@ -69,7 +69,7 @@ const GithubProfile = () => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="Enter GitHub username"
-          className="border rounded-md p-2"
+          className="border border-[#d1d5db] rounded-md p-2 text-sm w-64 bg-[#ffffff] text-[#1a1a2e] placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#3b82f6] focus:border-[#3b82f6] transition-all"
         />
 
         <button
@@ -78,27 +78,41 @@ const GithubProfile = () => {
             handleFetch();
           }}
           disabled={loading}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className="bg-[#3b82f6] hover:bg-[#2563eb] text-[#ffffff] px-5 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Fetching..." : "Fetch Profile"}
         </button>
       </div>
 
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-[#ef4444] text-sm font-medium">{error}</p>}
 
       {userData && (
         <div>
 
           {/* Profile */}
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold">
+          <div className="mb-6 p-5 rounded-xl border border-[#e5e7eb]">
+            <h3 className="text-xl font-semibold mb-3">
               {userData.name || userData.login}
             </h3>
 
-            <p>Followers: {userData.followers}</p>
-            <p>Public Repos: {userData.public_repos}</p>
-            <p>Total Stars: {totalStars}</p>
-            <p>Total Commits: {totalCommits}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-[#ffffff] rounded-lg p-3 border border-[#e5e7eb] text-center">
+                <p className="text-xs text-[#6b7280] uppercase tracking-wide">Followers</p>
+                <p className="text-lg font-bold text-[#1a1a2e]">{userData.followers}</p>
+              </div>
+              <div className="bg-[#ffffff] rounded-lg p-3 border border-[#e5e7eb] text-center">
+                <p className="text-xs text-[#6b7280] uppercase tracking-wide">Public Repos</p>
+                <p className="text-lg font-bold text-[#1a1a2e]">{userData.public_repos}</p>
+              </div>
+              <div className="bg-[#ffffff] rounded-lg p-3 border border-[#e5e7eb] text-center">
+                <p className="text-xs text-[#6b7280] uppercase tracking-wide">Total Stars</p>
+                <p className="text-lg font-bold text-[#f59e0b]">{totalStars}</p>
+              </div>
+              <div className="bg-[#ffffff] rounded-lg p-3 border border-[#e5e7eb] text-center">
+                <p className="text-xs text-[#6b7280] uppercase tracking-wide">Total Commits</p>
+                <p className="text-lg font-bold text-[#10b981]">{totalCommits}</p>
+              </div>
+            </div>
           </div>
 
           {/* Repo Cards */}
@@ -106,14 +120,14 @@ const GithubProfile = () => {
             Repositories & Commits
           </h4>
 
-          <div className="grid grid-cols-4 gap-4 max-w-[80vw] mx-auto mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-[80vw] mx-auto mb-8">
             {commits.map((commit) => (
               <div
                 key={commit.repo}
-                className="flex flex-col border p-4 rounded"
+                className="flex flex-col border border-[#e5e7eb] p-4 rounded-lg bg-[#ffffff] hover:shadow-md hover:border-[#3b82f6] transition-all"
               >
-                <strong>{commit.repo}</strong>
-                <p>Commits: {commit.commits}</p>
+                <strong className="text-sm font-semibold text-[#1a1a2e] truncate">{commit.repo}</strong>
+                <p className="text-xs text-[#6b7280] mt-1">Commits: <span className="font-medium text-[#1a1a2e]">{commit.commits}</span></p>
               </div>
             ))}
           </div>
@@ -124,10 +138,10 @@ const GithubProfile = () => {
               <button
                 key={i}
                 onClick={() => setPage(i + 1)}
-                className={`px-3 py-1 border rounded ${
+                className={`px-3 py-1 border rounded-md text-sm font-medium transition-colors ${
                   page === i + 1
-                    ? "bg-blue-500 text-white"
-                    : ""
+                    ? "bg-[#3b82f6] text-[#ffffff] border-[#3b82f6]"
+                    : "bg-[#ffffff] text-[#374151] border-[#d1d5db] hover:bg-[#f3f4f6]"
                 }`}
               >
                 {i + 1}

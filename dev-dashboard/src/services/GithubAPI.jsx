@@ -1,73 +1,34 @@
-import axios from "axios";
-
-// Fetch user profile
 export const fetchUserData = async (username) => {
-  try {
-    const response = await axios.get(
-      `https://api.github.com/users/${username}`
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching user data:", error);
-    throw error;
-  }
+  const res = await fetch(`https://api.github.com/users/${username}`);
+  if (!res.ok) throw new Error("User not found");
+  return res.json();
 };
 
-// Fetch repos with pagination
-export const fetchUserRepos = async (username, page = 1) => {
-  try {
-    const response = await axios.get(
-      `https://api.github.com/users/${username}/repos`,
-      {
-        params: {
-          per_page: 100,
-          page: page,
-        },
-      }
-    );
-
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching repos:", error);
-    throw error;
-  }
+export const fetchUserRepos = async (username, page) => {
+  const res = await fetch(
+    `https://api.github.com/users/${username}/repos?per_page=100&page=${page}`
+  );
+  if (!res.ok) throw new Error("Failed to fetch repos");
+  return res.json();
 };
 
-// Fetch commit counts per repo
-export const fetchUserCommits = async (username, userRepos) => {
-  try {
-    const commitPromises = userRepos.map(async (repo) => {
-      try {
-        const response = await axios.get(
-          `https://api.github.com/repos/${username}/${repo.name}/commits`
-        );
-
-        return {
-          repo: repo.name,
-          commits: response.data.length,
-        };
-      } catch (error) {
-        if (
-          error.response?.status === 404 ||
-          error.response?.status === 409
-        ) {
-          return {
-            repo: repo.name,
-            commits: 0,
-          };
-        }
-
-        console.error(`Error fetching commits for ${repo.name}:`, error);
-        return {
-          repo: repo.name,
-          commits: 0,
-        };
+export const fetchUserCommits = async (username, repos) => {
+  const commitPromises = repos.map(async (repo) => {
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${username}/${repo.name}/commits?per_page=1`
+      );
+      if (!res.ok) return { repo: repo.name, commits: 0 };
+      const linkHeader = res.headers.get("Link");
+      let count = 1;
+      if (linkHeader) {
+        const match = linkHeader.match(/page=(\d+)>; rel="last"/);
+        if (match) count = parseInt(match[1], 10);
       }
-    });
-
-    return await Promise.all(commitPromises);
-  } catch (error) {
-    console.error("Error fetching commits:", error);
-    throw error;
-  }
+      return { repo: repo.name, commits: count };
+    } catch {
+      return { repo: repo.name, commits: 0 };
+    }
+  });
+  return Promise.all(commitPromises);
 };
