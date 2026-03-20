@@ -13,6 +13,7 @@
     "@atlaskit/pragmatic-drag-and-drop": "^1.7.9",
     "@tailwindcss/vite": "^4.2.1",
     "axios": "^1.13.6",
+    "date-fns": "^4.1.0",
     "install": "^0.13.0",
     "lucide-react": "^0.577.0",
     "npm": "^11.11.0",
