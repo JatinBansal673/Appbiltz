@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area,
@@ -21,7 +21,10 @@ const initialEntries = [
 ];
 
 const ActivityChart = () => {
-  const [entries, setEntries] = useState(initialEntries);
+  const [entries, setEntries] = useState(() => {
+    const stored = localStorage.getItem('timesheetEntries');
+    return stored ? JSON.parse(stored) : initialEntries;
+  });
   const [viewMode, setViewMode] = useState('weekly');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [editingId, setEditingId] = useState(null);
@@ -35,6 +38,11 @@ const ActivityChart = () => {
     category: 'Development',
     notes: '',
   });
+  
+  useEffect(() => {
+    localStorage.setItem('timesheetEntries', JSON.stringify(entries));
+  }, [entries]);
+
 
   // Navigation
   const navigate = (dir) => {
@@ -325,7 +333,7 @@ const ActivityChart = () => {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-[260px] text-sm text-[#94a3b8]">No data for this period</div>
+            <div className="flex items-center justify-center h-65 text-sm text-[#94a3b8]">No data for this period</div>
           )}
         </div>
 
@@ -419,7 +427,7 @@ const ActivityChart = () => {
                             {entry.category}
                           </span>
                         </td>
-                        <td className="px-4 py-2.5 text-[#475569] dark:text-[#94a3b8] max-w-[150px] truncate">{entry.notes}</td>
+                        <td className="px-4 py-2.5 text-[#475569] dark:text-[#94a3b8] max-w-37.5 truncate">{entry.notes}</td>
                       </>
                     )}
                     <td className="px-4 py-2.5">

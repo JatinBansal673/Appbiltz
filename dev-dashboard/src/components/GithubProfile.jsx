@@ -16,6 +16,25 @@ const GithubProfile = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  useEffect(() => {
+    const stored = localStorage.getItem('githubProfile');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      setUserData(parsed.userData);
+      setRepos(parsed.repos);
+      setCommits(parsed.commits);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (userData) {
+      localStorage.setItem(
+        'githubProfile',
+        JSON.stringify({ userData, repos, commits })
+      );
+    }
+  }, [userData, repos, commits]);
+
   const handleFetch = async () => {
     if (!username) return;
 
@@ -58,7 +77,7 @@ const GithubProfile = () => {
   );
 
   return (
-    <div className="flex flex-col gap-4 mb-8 p-6 mx-auto">
+    <div className="flex flex-col gap-4 mb-8 p-6 w-screen md:w-fit">
 
       <h2 className="text-2xl font-bold">GitHub Profile</h2>
 

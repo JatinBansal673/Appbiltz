@@ -1,10 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const ProjectList = () => {
   const [projects, setProjects] = useState([]);
   const [newProject, setNewProject] = useState({ name: '', description: '', techStack: '', status: 'In Progress' });
   const [editingId, setEditingId] = useState(null);
   const [expanded, setExpanded] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Load tasks from localStorage on component mount
+  useEffect(() => {
+    const storedProjects = localStorage.getItem('projects');
+    if (storedProjects) {
+      setProjects(JSON.parse(storedProjects));
+    }
+  }, []);
+
+  // Save tasks to localStorage whenever tasks change
+  useEffect(() => {
+    localStorage.setItem('projects', JSON.stringify(projects));
+  }, [projects]);
 
   const handleAdd = () => {
     if (newProject.name) {
@@ -30,6 +44,13 @@ const ProjectList = () => {
   const handleDelete = (id) => {
     setProjects(projects.filter(p => p.id !== id));
   };
+
+  // Filter projects based on search term
+  const filteredProjects = projects.filter(project =>
+    project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.techStack.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="p-6 md:p-12">
@@ -80,9 +101,20 @@ const ProjectList = () => {
           </div>
         </div>
 
+        {/* Search Bar */}
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Search projects by name, description, or tech stack..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full text-sm px-3 py-2 rounded-lg border"
+          />
+        </div>
+
         {/* Project Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-hidden">
-          {projects.map((project) => (
+          {filteredProjects.map((project) => (
             <div
               key={project.id}
               className="group relative p-5 rounded-xl shadow-[0_0_0_1px_rgba(0,0,0,.08),0_1px_2px_rgba(0,0,0,.04)] hover:shadow-[0_0_0_1px_rgba(0,0,0,.12),0_8px_16px_-4px_rgba(0,0,0,.08)] transition-all duration-300 border border-[#e2e8f0] bg-[#fafbfc]  hover:bg-[#f1f5f9]"
@@ -142,9 +174,14 @@ const ProjectList = () => {
         </div>
 
         {/* Empty State */}
-        {projects.length === 0 && (
+        {filteredProjects.length === 0 && (
           <div className="py-24 text-center border-2 border-dashed border-border rounded-2xl">
-            <p className="text-sm">No projects found. Start by adding one above.</p>
+            <p className="text-sm">
+              {projects.length === 0
+                ? "No projects found. Start by adding one above."
+                : "No projects match your search. Try adjusting your search terms."
+              }
+            </p>
           </div>
         )}
       </div>

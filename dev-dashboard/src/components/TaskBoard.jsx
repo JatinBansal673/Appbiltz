@@ -17,6 +17,18 @@ const TaskBoard = () => {
   const columnRefs = useRef({});
   const taskRefs = useRef({});
 
+  useEffect(() => {
+      const storedTasks = localStorage.getItem('tasks');
+      if (storedTasks) {
+        setTasks(JSON.parse(storedTasks));
+      }
+    }, []);
+  
+    // Save projects to localStorage whenever projects change
+    useEffect(() => {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }, [tasks]);
+
   const handleDrop = (column, taskId) => {
     const fromColumn = Object.keys(tasks).find(col => tasks[col].some(t => t.id === taskId));
     if (fromColumn && fromColumn !== column) {
@@ -117,7 +129,7 @@ const TaskBoard = () => {
             <div
               key={column}
               ref={(el) => { if (el) columnRefs.current[column] = el; }}
-              className="w-80 min-h-100 shrink-0 border border-[#e2e8f0] p-4 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+              className="w-72 mx-auto min-h-100 sm:w-80 shrink-0 border border-[#e2e8f0] p-4 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
