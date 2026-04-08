@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { draggable, dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
+import PdfExportButton from './PdfExportButton';
+import { TaskBoardDocument } from '../utils/pdfDocuments';
 
 const TaskBoard = () => {
   const [tasks, setTasks] = useState({
@@ -123,7 +125,15 @@ const TaskBoard = () => {
   return (
     <div className="p-6 flex justify-center md:p-10">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 tracking-tight">Task Board</h1>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-[#0f172a] dark:text-[#f1f5f9]">Task Board</h2>
+            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Track and manage multiple tasks assigned</p>
+          </div>
+          {Object.values(tasks).some(value => value.length!==0) && 
+            <PdfExportButton document={<TaskBoardDocument tasks={tasks} />} fileName="task-board.pdf" />
+          }
+          </div>
         <div className="flex gap-5 overflow-x-auto pb-4 flex-wrap">
           {Object.keys(tasks).map(column => (
             <div

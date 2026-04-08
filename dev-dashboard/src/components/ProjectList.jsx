@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import PdfExportButton from './PdfExportButton';
+import { ProjectsDocument } from '../utils/pdfDocuments';
 
 const ProjectList = () => {
   const [projects, setProjects] = useState([]);
@@ -55,11 +57,18 @@ const ProjectList = () => {
   return (
     <div className="p-6 md:p-12">
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <header className="mb-12">
-          <h1 className="text-3xl font-bold tracking-tight">Project Manager</h1>
-          <p className="text-md">Track and manage your development pipeline.</p>
-        </header>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-[#0f172a] dark:text-[#f1f5f9]">Project Manager</h2>
+            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Track and manage your development pipeline</p>
+          </div>
+          {projects.length !== 0 &&
+            <PdfExportButton
+              document={<ProjectsDocument projects={filteredProjects} searchTerm={searchTerm} />}
+              fileName="projects.pdf"
+            />
+          }
+        </div>
 
         {/* Input Bar */}
         <div className="rounded-xl p-1 mb-12">

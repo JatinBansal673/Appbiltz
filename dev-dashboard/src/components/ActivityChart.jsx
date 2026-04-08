@@ -6,6 +6,8 @@ import {
 } from 'recharts';
 import { Plus, Trash2, Edit2, Check, X, TrendingUp, TrendingDown, Clock, Target, FolderOpen, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval, getDay } from 'date-fns';
+import PdfExportButton from './PdfExportButton';
+import { ActivityChartDocument } from '../utils/pdfDocuments';
 
 
 const CATEGORIES = ['Development', 'Meetings', 'Research', 'Design', 'Testing', 'Documentation'];
@@ -188,8 +190,13 @@ const ActivityChart = () => {
           <h2 className="text-2xl font-bold text-[#0f172a] dark:text-[#f1f5f9]">Timesheet</h2>
           <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Track hours, tasks & project contributions</p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* View toggle */}
+        <div className="flex flex-wrap items-center gap-2">
+          {filteredEntries.length!==0 &&
+            <PdfExportButton
+              document={<ActivityChartDocument viewMode={viewMode} rangeLabel={rangeLabel} stats={stats} entries={filteredEntries} />}
+              fileName="activity-summary.pdf"
+            />
+          }
           <div className="flex rounded-lg border border-[#e2e8f0] dark:border-[#334155] overflow-hidden">
             <button
               onClick={() => setViewMode('weekly')}

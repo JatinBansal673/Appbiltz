@@ -1,8 +1,5 @@
 import React from 'react';
 import GithubProfile from '../components/GithubProfile';
-import ActivityChart from '../components/ActivityChart';
-import TaskBoard from '../components/TaskBoard';
-
 const Dashboard = () => {
   return (
     <div className='flex flex-col items-center gap-8 mt-[5vh]'>

@@ -4,6 +4,9 @@ import {
   fetchUserData,
   fetchUserRepos,
 } from "../services/GithubAPI";
+import PdfExportButton from '../components/PdfExportButton';
+import { DashboardDocument } from '../utils/pdfDocuments';
+
 
 const GithubProfile = () => {
   const [username, setUsername] = useState("");
@@ -78,9 +81,14 @@ const GithubProfile = () => {
 
   return (
     <div className="flex flex-col gap-4 mb-8 p-6 w-screen md:w-fit">
-
-      <h2 className="text-2xl font-bold">GitHub Profile</h2>
-
+      <div className="flex justify-between">
+        <h2 className="text-2xl font-bold">GitHub Profile</h2>
+        {userData && 
+          <div>
+            <PdfExportButton document={<DashboardDocument userData={userData} commits={commits} totalStars={totalStars} totalCommits={totalCommits}/>} fileName='dashboard.pdf' />
+          </div>
+        }
+      </div>
       {/* Search */}
       <div className="flex gap-5">
         <input
@@ -97,7 +105,7 @@ const GithubProfile = () => {
             handleFetch();
           }}
           disabled={loading}
-          className="bg-[#3b82f6] hover:bg-[#2563eb] text-[#ffffff] px-5 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-full text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Fetching..." : "Fetch Profile"}
         </button>
