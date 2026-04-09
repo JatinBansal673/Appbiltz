@@ -18,9 +18,9 @@ const dbConnect=require('./config/database')
 dbConnect();
 
 
-// app.use("/api/v1/auth", require("./routes/authRoutes"));
-// app.use("/api/v1/meeting", require("./routes/meetingRoutes"));
-// app.use("/api/v1/booking", require("./routes/bookingRoutes"));
+app.use("/api/v1/auth", require("./routes/authRoutes"));
+app.use("/api/v1/meeting", require("./routes/meetingRoutes"));
+app.use("/api/v1/booking", require("./routes/bookingRoutes"));
 
 app.get('/',(req,res) => {
     return res.json({
