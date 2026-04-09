@@ -14,18 +14,18 @@ const CATEGORIES = ['Development', 'Meetings', 'Research', 'Design', 'Testing', 
 const CHART_COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const initialEntries = [
-  { id: 1, date: '2026-03-16', day: 'Mon', hours: 4, tasks: 2, projects: 1, category: 'Development', notes: 'API integration' },
-  { id: 2, date: '2026-03-17', day: 'Tue', hours: 6, tasks: 3, projects: 1, category: 'Meetings', notes: 'Sprint planning' },
-  { id: 3, date: '2026-03-18', day: 'Wed', hours: 5, tasks: 1, projects: 0, category: 'Research', notes: 'Tech spike' },
-  { id: 4, date: '2026-03-19', day: 'Thu', hours: 7, tasks: 4, projects: 2, category: 'Development', notes: 'Feature build' },
-  { id: 5, date: '2026-03-20', day: 'Fri', hours: 3, tasks: 2, projects: 1, category: 'Testing', notes: 'QA review' },
-];
+// const initialEntries = [
+//   { id: 1, date: '2026-03-16', day: 'Mon', hours: 4, tasks: 2, projects: 1, category: 'Development', notes: 'API integration' },
+//   { id: 2, date: '2026-03-17', day: 'Tue', hours: 6, tasks: 3, projects: 1, category: 'Meetings', notes: 'Sprint planning' },
+//   { id: 3, date: '2026-03-18', day: 'Wed', hours: 5, tasks: 1, projects: 0, category: 'Research', notes: 'Tech spike' },
+//   { id: 4, date: '2026-03-19', day: 'Thu', hours: 7, tasks: 4, projects: 2, category: 'Development', notes: 'Feature build' },
+//   { id: 5, date: '2026-03-20', day: 'Fri', hours: 3, tasks: 2, projects: 1, category: 'Testing', notes: 'QA review' },
+// ];
 
 const ActivityChart = () => {
   const [entries, setEntries] = useState(() => {
     const stored = localStorage.getItem('timesheetEntries');
-    return stored ? JSON.parse(stored) : initialEntries;
+    return stored ? JSON.parse(stored) : [];
   });
   const [viewMode, setViewMode] = useState('weekly');
   const [currentDate, setCurrentDate] = useState(new Date());
