@@ -1,10 +1,31 @@
 const router = require("express").Router();
+const auth = require("../middleware/auth");
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const { google } = require("googleapis");
 const { sendEmail } = require("../services/email");
 const emailTemplates = require("../utils/emailTemplates");
+
+const oauth2Client = new google.auth.OAuth2(
+  process.env.CLIENT_ID,
+  process.env.CLIENT_SECRET,
+  process.env.GOOGLE_OAUTH_REDIRECT_URI
+);
+
+const getGoogleAuthUrl = () => {
+  return oauth2Client.generateAuthUrl({
+    access_type: "offline",
+    prompt: "consent",
+    scope: [
+      "openid",
+      "profile",
+      "email",
+      "https://www.googleapis.com/auth/calendar.events"
+    ]
+  });
+};
 
 // Signup
 router.post("/signup", async (req, res) => {
@@ -25,7 +46,7 @@ router.post("/signup", async (req, res) => {
   });
 
   const { subject, html } = emailTemplates.verificationEmail(name, verificationToken);
-  await sendEmail({ from: process.env.EMAIL, to: email, subject, html });
+  await sendEmail({ from:`"Slot Booking Team" <${process.env.EMAIL}>`, to: email, subject, html });
 
   res.status(201).json({
     message: "Signup successful. Check your email to verify your account."
@@ -56,6 +77,48 @@ router.post("/login", async (req, res) => {
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret");
   res.header("Authorization", token).json({ token });
+});
+
+router.get("/google", (req, res) => {
+  res.json({ url: getGoogleAuthUrl() });
+});
+
+router.get("/google/callback", async (req, res) => {
+  const { code } = req.query;
+  if (!code) return res.status(400).json({ message: "Missing authorization code" });
+
+  try {
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
+
+    const oauth2 = google.oauth2({ auth: oauth2Client, version: "v2" });
+    const profile = await oauth2.userinfo.get();
+
+    const email = profile.data.email;
+    const name = profile.data.name || email.split("@")[0];
+    if (!email) return res.status(400).json({ message: "Unable to retrieve Google email" });
+
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = await User.create({
+        name,
+        email,
+        isVerified: true,
+        googleRefreshToken: tokens.refresh_token
+      });
+    } else {
+      if (tokens.refresh_token) {
+        user.googleRefreshToken = tokens.refresh_token;
+        await user.save();
+      }
+    }
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret");
+    res.header("Authorization", token).json({ token ,user});
+  } catch (err) {
+    console.error("Google callback failed:", err);
+    res.status(500).json({ message: "Google login failed" });
+  }
 });
 
 module.exports = router;

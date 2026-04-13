@@ -3,59 +3,13 @@ const Booking = require("../models/booking");
 const Meeting = require("../models/meeting");
 const { sendEmail } = require("../services/email");
 const emailTemplates = require("../utils/emailTemplates");
-
-const findSlotByStart = (meeting, slotTime) => {
-  const requested = new Date(slotTime);
-  return meeting.slots.find(
-    (slot) =>
-      slot.startTime && slot.startTime.getTime() === requested.getTime()
-  );
-};
+const { bookSlot } = require("../controllers/bookingController");
 
 // Book Slot
-router.post("/book", async (req, res) => {
-  const { meetingId, slotTime, name, email, location, reason } = req.body;
-
-  const meeting = await Meeting.findById(meetingId).populate("host", "name email");
-  if (!meeting) return res.status(404).json({ message: "Meeting not found" });
-
-  const slot = findSlotByStart(meeting, slotTime);
-  if (!slot) return res.status(404).json({ message: "Slot not found" });
-  if (slot.isBooked) return res.status(400).json("Already booked");
-
-  slot.isBooked = true;
-  await meeting.save();
-
-  const booking = await Booking.create({
-    meeting: meeting._id,
-    slotStart: slot.startTime,
-    guest: { name, email, location, reason }
-  });
-
-  await sendEmail({
-    from: process.env.EMAIL,
-    to: email,
-    ...emailTemplates.bookingConfirmationEmail({ name, email }, meeting, slot)
-  });
-
-  if (meeting.host?.email) {
-    await sendEmail({
-      from: process.env.EMAIL,
-      to: meeting.host.email,
-      ...emailTemplates.bookingNotificationEmail(
-        meeting.host,
-        { name, email, location, reason },
-        meeting,
-        slot
-      )
-    });
-  }
-
-  res.status(201).json(booking);
-});
+router.post("/book", bookSlot);
 
 router.post("/reschedule", async (req, res) => {
-  const { bookingId, newSlotTime } = req.body;
+  const { bookingId, newSlotId } = req.body;
 
   const booking = await Booking.findById(bookingId).populate("meeting");
   if (!booking) return res.status(404).json({ message: "Booking not found" });
@@ -66,23 +20,21 @@ router.post("/reschedule", async (req, res) => {
   );
   if (!meeting) return res.status(404).json({ message: "Meeting not found" });
 
-  const oldSlot = meeting.slots.find(
-    (slot) =>
-      slot.startTime && slot.startTime.getTime() === booking.slotStart.getTime()
-  );
-  const newSlot = findSlotByStart(meeting, newSlotTime);
+  const oldSlot = meeting.slots.find((slot) => slot.slotId === booking.slotId);
+  const newSlot = meeting.slots.find((slot) => slot.slotId === newSlotId);
   if (!newSlot) return res.status(404).json({ message: "New slot not found" });
   if (newSlot.isBooked) return res.status(400).json("New slot is already booked");
 
   if (oldSlot) oldSlot.isBooked = false;
   newSlot.isBooked = true;
-  booking.slotStart = newSlot.startTime;
+  booking.slotId = newSlotId;
+  booking.meetLink = newSlot.meetLink;
 
   await meeting.save();
   await booking.save();
 
   await sendEmail({
-    from: process.env.EMAIL,
+    from: `"Slot Booking Team" <${process.env.EMAIL}>`,
     to: booking.guest.email,
     ...emailTemplates.bookingRescheduleGuest(
       booking.guest,
@@ -94,7 +46,7 @@ router.post("/reschedule", async (req, res) => {
 
   if (meeting.host?.email) {
     await sendEmail({
-      from: process.env.EMAIL,
+      from: `"Slot Booking Team" <${process.env.EMAIL}>`,
       to: meeting.host.email,
       ...emailTemplates.bookingRescheduleHost(
         meeting.host,
@@ -122,23 +74,21 @@ router.post("/cancel", async (req, res) => {
   if (!meeting) return res.status(404).json({ message: "Meeting not found" });
 
   const slot = meeting.slots.find(
-    (slotItem) =>
-      slotItem.startTime &&
-      slotItem.startTime.getTime() === booking.slotStart.getTime()
+    (slotItem) => slotItem.slotId === booking.slotId
   );
 
   if (slot) slot.isBooked = false;
   await meeting.save();
 
   await sendEmail({
-    from: process.env.EMAIL,
+    from: `"Slot Booking Team" <${process.env.EMAIL}>`,
     to: booking.guest.email,
     ...emailTemplates.bookingCancellationGuest(booking.guest, meeting, slot)
   });
 
   if (meeting.host?.email) {
     await sendEmail({
-      from: process.env.EMAIL,
+      from: `"Slot Booking Team" <${process.env.EMAIL}>`,
       to: meeting.host.email,
       ...emailTemplates.bookingCancellationHost(
         meeting.host,

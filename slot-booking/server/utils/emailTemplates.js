@@ -37,6 +37,7 @@ const bookingConfirmationEmail = (guest, meeting, slot) => ({
       <p><strong>When:</strong> ${formatDateTime(slot.startTime)}</p>
       <p><strong>Details:</strong> ${meeting.description || "N/A"}</p>
       <p><strong>Location:</strong> ${guest.location || "Not provided"}</p>
+      <p><strong>Meet Link:</strong> ${slot.meetLink}</p>
       <p>We look forward to seeing you.</p>
       <p>Thanks,<br/>Slot Booking Team</p>
     `
@@ -51,6 +52,7 @@ const bookingNotificationEmail = (host, guest, meeting, slot) => ({
       <p><strong>When:</strong> ${formatDateTime(slot.startTime)}</p>
       <p><strong>Location:</strong> ${guest.location || "Not provided"}</p>
       <p><strong>Reason:</strong> ${guest.reason || "Not provided"}</p>
+      <p><strong>Meet Link:</strong> ${slot.meetLink}</p>
       <p>Thanks,<br/>Slot Booking Team</p>
     `
 });
@@ -62,6 +64,7 @@ const bookingRescheduleGuest = (guest, meeting, oldSlot, newSlot) => ({
       <p>Your booking for <strong>${meeting.title}</strong> has been rescheduled.</p>
       <p><strong>Previous time:</strong> ${formatDateTime(oldSlot?.startTime)}</p>
       <p><strong>New time:</strong> ${formatDateTime(newSlot.startTime)}</p>
+      <p><strong>Meet Link:</strong> ${newSlot.meetLink}</p>
       <p>Thanks,<br/>Slot Booking Team</p>
     `
 });
@@ -73,6 +76,7 @@ const bookingRescheduleHost = (host, guest, meeting, oldSlot, newSlot) => ({
       <p>The booking by ${guest.name} (${guest.email}) for <strong>${meeting.title}</strong> has been rescheduled.</p>
       <p><strong>Previous time:</strong> ${formatDateTime(oldSlot?.startTime)}</p>
       <p><strong>New time:</strong> ${formatDateTime(newSlot.startTime)}</p>
+      <p><strong>Meet Link:</strong> ${newSlot.meetLink}</p>
       <p>Thanks,<br/>Slot Booking Team</p>
     `
 });
