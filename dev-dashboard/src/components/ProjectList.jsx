@@ -6,7 +6,7 @@ const ProjectList = () => {
   const [projects, setProjects] = useState([]);
   const [newProject, setNewProject] = useState({ name: '', description: '', techStack: '', status: 'In Progress' });
   const [editingId, setEditingId] = useState(null);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
 
   // Load tasks from localStorage on component mount
@@ -159,12 +159,17 @@ const ProjectList = () => {
                 <p className="text-sm leading-relaxed mb-4 line-clamp-2 text-[#64748b]">{project.description}</p>
                 :
                 <p className="text-sm leading-relaxed mb-4 text-[#64748b]">
-                  {expanded ? project.description : `${project.description.slice(0, 20)}...`}
+                  {expanded[project.id] ? project.description : `${project.description.slice(0, 21)}...`}
                   <button
-                    onClick={() => setExpanded(!expanded)}
+                    onClick={() =>
+                              setExpanded(prev => ({
+                                ...prev,
+                                [project.id]: !prev[project.id]
+                              }))
+                            }
                     className="ml-1 hover:underline text-xs font-medium"
                   >
-                    {expanded ? 'Read less' : 'Read more'}
+                    {expanded[project.id] ? 'Read less' : 'Read more'}
                   </button>
                 </p>
               }

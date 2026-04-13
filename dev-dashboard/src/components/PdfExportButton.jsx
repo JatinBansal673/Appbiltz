@@ -1,7 +1,7 @@
 import React from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 
-const PdfExportButton = ({ document, fileName = 'export.pdf', label = 'Export PDF' }) => {
+const PdfExportButton = ({ document, fileName = 'export.pdf', label = 'Export To PDF' }) => {
   return (
     <PDFDownloadLink document={document} fileName={fileName}>
       {({ loading, error }) => (

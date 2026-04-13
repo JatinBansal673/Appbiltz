@@ -88,27 +88,43 @@ const ActivityChart = () => {
     if (viewMode === 'weekly') {
       const days = eachDayOfInterval({ start: rangeStart, end: rangeEnd });
       return days.map(d => {
-        const dayStr = format(d, 'yyyy-MM-dd');
-        const entry = filteredEntries.find(e => e.date === dayStr);
-        return {
-          name: DAY_NAMES[getDay(d)],
-          date: format(d, 'MMM d'),
-          hours: entry?.hours || 0,
-          tasks: entry?.tasks || 0,
-          projects: entry?.projects || 0,
-        };
-      });
-    }
+      const dayStr = format(d, 'yyyy-MM-dd');
+      const entry = filteredEntries.filter(e => e.date === dayStr);
+      const totalHours = entry.reduce((sum, e) => sum + e.hours, 0);
+      const totalTasks = entry.reduce((sum, e) => sum + e.tasks, 0);
+      const totalProjects = entry.reduce((sum, e) => sum + e.projects, 0);
+
+      return {
+        name: DAY_NAMES[getDay(d)],
+        date: format(d, 'MMM d'),
+        hours: totalHours,
+        tasks: totalTasks,
+        projects: totalProjects,
+      };
+    });
+  }
     // Monthly: group by week
     const weeks = {};
     filteredEntries.forEach(e => {
-      const wk = `W${Math.ceil(new Date(e.date).getDate() / 7)}`;
+      const dateObj = new Date(e.date);
+      const wk = format(
+        startOfWeek(dateObj, { weekStartsOn: 1 }),
+        'yyyy-MM-dd'
+      );
       if (!weeks[wk]) weeks[wk] = { hours: 0, tasks: 0, projects: 0 };
       weeks[wk].hours += e.hours;
       weeks[wk].tasks += e.tasks;
       weeks[wk].projects += e.projects;
     });
-    return Object.keys(weeks).map(name => ({ name, hours: weeks[name].hours, tasks: weeks[name].tasks, projects: weeks[name].projects }));
+    return Object.keys(weeks).map((wk) => ({
+      name: `${format(new Date(wk), 'MMM d')} - ${format(
+        endOfWeek(new Date(wk), { weekStartsOn: 1 }),
+        'd'
+      )}`,
+      hours: weeks[wk].hours,
+      tasks: weeks[wk].tasks,
+      projects: weeks[wk].projects,
+    }));
   }, [filteredEntries, viewMode, rangeStart, rangeEnd]);
 
   const categoryData = useMemo(() => {

@@ -185,13 +185,13 @@ const TaskBoard = () => {
                       </div>
                     </div>
                     {task.description && (
-                      <div className="mt-1.5">
+                      <div className="mt-1.5 flex gap-1">
                         <p className="text-xs text-[#64748b] leading-relaxed">
                           {task.description.length > 20 && !expandedDescs[task.id]
-                            ? `${task.description.slice(0, 20)}...`
+                            ? `${task.description.slice(0, 21)}...`
                             : task.description}
                         </p>
-                        {task.description.length > 20 && (
+                        {task.description.length > 21 && (
                           <button
                             onClick={(e) => { e.stopPropagation(); toggleDesc(task.id); }}
                             className="text-[10px] font-semibold text-[#3b82f6] hover:text-[#2563eb] mt-0.5"
