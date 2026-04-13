@@ -155,7 +155,7 @@ const ProjectList = () => {
               </div>
 
               <h3 className="text-sm font-semibold mb-1 text-[#1e293b]">{project.name}</h3>
-              {(!project.description || project.description.length<20)?
+              {(!project.description || project.description.length<21)?
                 <p className="text-sm leading-relaxed mb-4 line-clamp-2 text-[#64748b]">{project.description}</p>
                 :
                 <p className="text-sm leading-relaxed mb-4 text-[#64748b]">
