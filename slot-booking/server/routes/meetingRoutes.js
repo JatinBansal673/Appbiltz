@@ -11,6 +11,13 @@ const { v4: uuidv4 } = require("uuid");
 // Create Meeting
 router.post("/create", auth, createMeeting);
 
+// Get meetings for current user
+router.get("/user", auth, async (req, res) => {
+  const meetings = await Meeting.find({ host: req.user.id });
+  if(!meetings) return res.status(200).json({message: "No Data Found"});
+  return res.json(meetings);
+});
+
 // Get Meeting by ID (Public)
 router.get("/:id", async (req, res) => {
   const meeting = await Meeting.findById(req.params.id);
