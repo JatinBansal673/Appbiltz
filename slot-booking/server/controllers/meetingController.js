@@ -17,7 +17,7 @@ exports.createMeeting = async (req, res) => {
     }
 
     if (!user.googleRefreshToken) {
-      return res.status(400).json({ message: "Please connect your Google account before creating meetings." });
+      return res.status(400).json({ message: "Please connect your Google account before creating meetings.", error: "GOOGLE_NOT_CONNECTED"});
     }
 
     const processedSlots = await Promise.all(

@@ -30,7 +30,8 @@ exports.bookSlot = async (req, res) => {
       meeting: meeting._id,
       slotId,
       guest,
-      meetLink: slot.meetLink
+      meetLink: slot.meetLink,
+      user: null
     });
 
     await sendEmail({

@@ -5,7 +5,7 @@ const Booking = require("../models/booking");
 const { sendEmail } = require("../services/email");
 const emailTemplates = require("../utils/emailTemplates");
 const { createMeeting, getSlot } = require("../controllers/meetingController");
-const { deleteMeetEvent, createMeetLink } = require("../services/googleMeetService");
+const { deleteMeetEvent, createMeetLink, updateMeetEvent } = require("../services/googleMeetService");
 const { v4: uuidv4 } = require("uuid");
 
 // Create Meeting
@@ -18,14 +18,22 @@ router.get("/user", auth, async (req, res) => {
   return res.json(meetings);
 });
 
-// Get Meeting by ID (Public)
+// Get Available Meeting Slots by ID (Public)
 router.get("/:id", async (req, res) => {
   const meeting = await Meeting.findById(req.params.id);
-  res.json(meeting);
+  if (!meeting) return res.status(404).json({ message: "Meeting not found" });
+
+  const availableSlots = meeting.slots.filter(s => !s.isBooked);
+
+  res.json({
+    meetingId: meeting._id,
+    title: meeting.title,
+    slots: availableSlots
+  });
 });
 
 // Cancel meeting and notify guests
-router.post("/cancel/meeting/:id", auth, async (req, res) => {
+router.post("/cancel/:id", auth, async (req, res) => {
   const meeting = await Meeting.findById(req.params.id).populate("host", "name email googleRefreshToken");
   if (!meeting) return res.status(404).json({ message: "Meeting not found" });
   if (meeting.host._id.toString() !== req.user.id) {
@@ -68,7 +76,7 @@ router.post("/cancel/meeting/:id", auth, async (req, res) => {
 });
 
 // Add slot to an existing meeting
-router.post("/addSlot/:meetingId", auth, async (req, res) => {
+router.post("/slot/add/:meetingId", auth, async (req, res) => {
   const { startTime, endTime } = req.body;
 
   const meeting = await Meeting.findById(req.params.meetingId).populate("host", "googleRefreshToken");
@@ -119,8 +127,71 @@ router.post("/addSlot/:meetingId", auth, async (req, res) => {
 // Get slots
 router.get("/slot/:slotId", getSlot);
 
+//Reschedule slot
+router.post("/slot/reschedule/:slotId", auth, async (req, res) => {
+  const { startTime, endTime } = req.body;
+
+  const meeting = await Meeting.findOne({ "slots.slotId": req.params.slotId })
+    .populate("host", "googleRefreshToken email");
+
+  if (!meeting) {
+    return res.status(404).json({ message: "Meeting not found" });
+  }
+
+  if (meeting.host._id.toString() !== req.user.id) {
+    return res.status(403).json({ message: "Unauthorized" });
+  }
+
+  const slot = meeting.slots.find(s => s.slotId === req.params.slotId);
+  if (!slot) {
+    return res.status(404).json({ message: "Slot not found" });
+  }
+
+  try {
+    if (slot.eventId) {
+      await updateMeetEvent(
+        slot.eventId,
+        startTime,
+        endTime,
+        meeting.title,
+        meeting.host.googleRefreshToken
+      );
+    }
+    slot.startTime = startTime;
+    slot.endTime = endTime;
+
+    await meeting.save();
+    
+    const bookings = await Booking.find({
+      meeting: meeting._id,
+      slotId: slot.slotId
+    });
+
+    for (const booking of bookings) {
+      await sendEmail({
+        from: `"Slot Booking Team" <${process.env.EMAIL}>`,
+        to: booking.guest.email,
+        ...emailTemplates.bookingRescheduleGuest(
+          booking.guest,
+          meeting,
+          slot
+        )
+      });
+    }
+
+    res.json({
+      message: "Slot rescheduled successfully",
+      slot
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error rescheduling slot" });
+  }
+});
+
 //delete the slot
-router.post("/cancel/slot/:slotId", auth, async (req, res) => {
+router.post("/slot/cancel/:slotId", auth, async (req, res) => {
   const meeting = await Meeting.findOne({ "slots.slotId": req.params.slotId }).populate(
     "host",
     "name email googleRefreshToken"

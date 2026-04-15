@@ -73,7 +73,6 @@ const bookingRescheduleHost = (host, guest, meeting, oldSlot, newSlot) => ({
   subject: `Booking rescheduled for ${meeting.title}`,
   html: `
       <p>Hi ${host.name || "Host"},</p>
-      <p>The booking by ${guest.name} (${guest.email}) for <strong>${meeting.title}</strong> has been rescheduled.</p>
       <p><strong>Previous time:</strong> ${formatDateTime(oldSlot?.startTime)}</p>
       <p><strong>New time:</strong> ${formatDateTime(newSlot.startTime)}</p>
       <p><strong>Meet Link:</strong> ${newSlot.meetLink}</p>

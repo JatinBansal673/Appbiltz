@@ -66,3 +66,25 @@ exports.deleteMeetEvent = async (eventId, refreshToken) => {
     console.warn("Failed to delete Google Meet event:", error.message || error);
   }
 };
+
+exports.updateMeetEvent = async (eventId, startTime, endTime, title, refreshToken) => {
+
+  try {
+    const calendar = createCalendarClient(refreshToken);
+    await calendar.events.patch({
+      calendarId: "primary",
+      eventId,
+      requestBody: {
+        summary: title,
+        start: {
+          dateTime: new Date(startTime).toISOString()
+        },
+        end: {
+          dateTime: new Date(endTime).toISOString()
+        }
+      }
+    });
+  }catch(err) {
+    console.warn("Failed to update Google Meet event:", err.message || err);
+  }
+};

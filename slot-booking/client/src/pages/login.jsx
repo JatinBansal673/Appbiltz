@@ -14,20 +14,33 @@ export default function Login() {
   };
 
   const loginWithGoogle = async () => {
-    const res = await api.get("/auth/google");
+    const email = prompt("Enter your email (optional)");
+    const res = await api.get(`/auth/google?email=${email || ""}`);
     window.location.href = res.data.url;
   }
 
   return (
     <div className="p-10">
-      <h2>Login</h2>
+      <h2 className="text-xl mb-4">Login</h2>
 
-      <input placeholder="Email" onChange={e => setForm({...form, email:e.target.value})}/>
-      <input type="password" placeholder="Password" onChange={e => setForm({...form, password:e.target.value})}/>
+      <input
+        className="border p-2 block mb-2"
+        placeholder="Email"
+        onChange={(e) => setForm({ ...form, email: e.target.value })}
+      />
 
-      <button onClick={login}>Login</button>
+      <input
+        type="password"
+        className="border p-2 block mb-2"
+        placeholder="Password"
+        onChange={(e) => setForm({ ...form, password: e.target.value })}
+      />
 
-      <button onClick={loginWithGoogle}>
+      <button onClick={login} className="bg-blue-500 text-white px-4 py-2 mr-2">
+        Login
+      </button>
+
+      <button onClick={loginWithGoogle} className="bg-red-500 text-white px-4 py-2">
         Login with Google
       </button>
     </div>

@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import api from "../api/api";
+import { useNavigate } from "react-router-dom";
+
 
 export default function Dashboard() {
+  const nav = useNavigate();
   const [meetings, setMeetings] = useState([]);
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [slotStart, setSlotStart] = useState("");
   const [slotEnd, setSlotEnd] = useState("");
   const [slotInputs, setSlotInputs] = useState({});
+  const [connectGoogle, setConnectGoogle] = useState(false);
 
   const fetchMeetings = async () => {
     const res = await api.get("/meeting/user");
@@ -28,6 +32,7 @@ export default function Dashboard() {
     try {
       const res = await api.post("/meeting/create", {
         title,
+        desc,
         slots: [{
           startTime: slotStart, 
           endTime: slotEnd
@@ -42,6 +47,7 @@ export default function Dashboard() {
 
       if (err.response?.data?.error === "GOOGLE_NOT_CONNECTED") {
         alert("Please connect Google Calendar first");
+        setConnectGoogle(true);
         return;
       }
 
@@ -49,18 +55,19 @@ export default function Dashboard() {
     }
   
     setTitle("");
+    setDesc("");
     setSlotStart("");
     setSlotEnd("");
     fetchMeetings();
   };
 
   const deleteMeeting = async (id) => {
-    await api.post(`/meeting/cancel/meeting/${id}`);
+    await api.post(`/meeting/cancel/${id}`);
     fetchMeetings();
   };
 
   const deleteSlot = async (slotId) => {
-    await api.post(`/meeting/cancel/slot/${slotId}`);
+    await api.post(`/meeting/slot/cancel/${slotId}`);
     fetchMeetings();
   };
 
@@ -71,14 +78,33 @@ export default function Dashboard() {
       return;
     }
 
-    await api.post(`/meeting/addSlot/${meetingId}`, { startTime, endTime });
+    await api.post(`/meeting/slot/add/${meetingId}`, { startTime, endTime });
     setSlotInputs((prev) => ({ ...prev, [meetingId]: { startTime: "", endTime: "" } }));
     fetchMeetings();
   };
 
+  const rescheduleSlot = async (slotId) => {
+    const start = prompt("Enter new start (YYYY-MM-DDTHH:mm)");
+    const end = prompt("Enter new end (YYYY-MM-DDTHH:mm)");
+    await api.post(`/meeting/slot/reschedule/${slotId}`, {
+      startTime: start,
+      endTime: end
+    });
+    fetchMeetings();
+  };
+
+  const loginWithGoogle = async () => {
+    const res = await api.get("/auth/google");
+    window.location.href = res.data.url;
+  }
+
   return (
     <div className="p-10">
-      <h1>Dashboard</h1>
+      <h1>Dashboard</h1> 
+      <button onClick={() => { 
+        localStorage.removeItem("token")
+        nav("/")
+        }}>Logout</button>
 
       <div className="mb-4">
         <input
@@ -102,11 +128,30 @@ export default function Dashboard() {
           onChange={e => setSlotEnd(e.target.value)}
         />
         <button onClick={createMeeting}>Create Meeting</button>
-      </div>
+      </div> 
+
+        {connectGoogle && (
+          <div className="bg-yellow-100 p-3 mt-4 rounded">
+            <p className="text-sm">
+              Connect Google to create meetings
+            </p>
+            <button
+              className="bg-blue-500 text-white px-3 py-1 mt-2 rounded"
+              onClick={loginWithGoogle}
+            >
+              Connect To Google
+            </button>
+          </div>
+        )}
 
       {meetings.map(m => (
         <div key={m._id} className="border p-4 mt-4">
           <h3>{m.title}</h3>
+          <h4>{m.desc}</h4>
+
+          <button onClick={() => navigator.clipboard.writeText(`http://localhost:5173/book/${m._id}`)}>
+                  Copy Meeting Link
+          </button>
 
           <button onClick={() => deleteMeeting(m._id)}>Delete</button>
 
@@ -114,14 +159,25 @@ export default function Dashboard() {
             {m.slots.map(s => (
               <div key={s.slotId} className="mb-2">
                 <p>{new Date(s.startTime).toLocaleString()}</p>
+                {s.isBooked && (
+                  <p className="text-blue-600">
+                    Meet Link: {s.meetLink}
+                  </p>
+                )}
 
-                <button onClick={() => navigator.clipboard.writeText(`http://localhost:5173/book/${s.slotId}`)}>
-                  Copy Booking Link
-                </button>
+                <p className={`text-sm ${s.isBooked ? "text-red-500" : "text-green-600"}`}>
+                  {s.isBooked ? "Booked" : "Available"}
+                </p>
 
                 <button onClick={() => deleteSlot(s.slotId)}>
                   Delete Slot
                 </button>
+
+                <button onClick={() =>
+                  rescheduleSlot(s.slotId)
+                }>
+                  Reschedule
+              </button>
               </div>
             ))}
           </div>

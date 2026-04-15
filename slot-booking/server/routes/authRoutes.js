@@ -14,10 +14,10 @@ const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_OAUTH_REDIRECT_URI
 );
 
-const getGoogleAuthUrl = () => {
+const getGoogleAuthUrl = (forceConsent) => {
   return oauth2Client.generateAuthUrl({
     access_type: "offline",
-    prompt: "consent",
+    prompt: forceConsent ? "consent" : undefined,
     scope: [
       "openid",
       "profile",
@@ -79,8 +79,23 @@ router.post("/login", async (req, res) => {
   res.header("Authorization", token).json({ token });
 });
 
-router.get("/google", (req, res) => {
-  res.json({ url: getGoogleAuthUrl() });
+router.get("/google", async (req, res) => {
+  const { email } = req.query;
+
+  let forceConsent = false;
+
+  if (email) {
+    const user = await User.findOne({ email: email });
+    if (!user || !user.googleRefreshToken) {
+      forceConsent = true;
+    }
+  } else {
+    forceConsent = true;
+  }
+
+  res.json({
+    url: getGoogleAuthUrl(forceConsent)
+  });
 });
 
 router.get("/google/callback", async (req, res) => {
