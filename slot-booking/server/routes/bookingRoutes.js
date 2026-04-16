@@ -13,7 +13,7 @@ router.post("/book", bookSlot);
 router.get("/myBookings", auth, async (req, res) => {
   const user = await User.findById(req.user.id);
 
-  const bookings = await Booking.find({
+  let bookings = await Booking.find({
     $or: [
       { user: req.user.id },              // logged-in bookings
       { "guest.email": user.email }       // guest bookings
@@ -21,9 +21,20 @@ router.get("/myBookings", auth, async (req, res) => {
   }).populate("meeting");
 
   await Booking.updateMany(
-  { "guest.email": user.email, user: null },
-  { $set: { user: user._id } }
-);
+    { "guest.email": user.email, user: null },
+    { $set: { user: user._id } }
+  );
+
+  bookings = bookings.map(b => {
+    const slot = b.meeting?.slots.find(
+      s => s.slotId === b.slotId
+    );
+
+    return {
+      ...b.toObject(),
+      slot
+    };
+  });
 
   res.json(bookings);
 });

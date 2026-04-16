@@ -17,7 +17,7 @@ const oauth2Client = new google.auth.OAuth2(
 const getGoogleAuthUrl = (forceConsent) => {
   return oauth2Client.generateAuthUrl({
     access_type: "offline",
-    prompt: forceConsent ? "consent" : undefined,
+    prompt: forceConsent ? "consent" : "select_account",
     scope: [
       "openid",
       "profile",
@@ -55,14 +55,16 @@ router.post("/signup", async (req, res) => {
 
 // Verify email
 router.get("/verify/:token", async (req, res) => {
-  const user = await User.findOne({ verificationToken: req.params.token });
+  const token = req.params.token;
+  const user = await User.findOne({ verificationToken: token });
   if (!user) return res.status(400).json({ message: "Invalid verification token." });
 
   user.isVerified = true;
   user.verificationToken = undefined;
   await user.save();
 
-  res.json({ message: "Email verified successfully." });
+  // res.json({ message: "Email verified successfully." });
+  res.redirect(`${process.env.VITE_APP_FRONTEND_URL}/oauth?token=${token}`);
 });
 
 // Login
@@ -80,22 +82,14 @@ router.post("/login", async (req, res) => {
 });
 
 router.get("/google", async (req, res) => {
-  const { email } = req.query;
-
-  let forceConsent = false;
-
-  if (email) {
-    const user = await User.findOne({ email: email });
-    if (!user || !user.googleRefreshToken) {
-      forceConsent = true;
-    }
-  } else {
-    forceConsent = true;
-  }
-
   res.json({
-    url: getGoogleAuthUrl(forceConsent)
+    url: getGoogleAuthUrl(false)
   });
+});
+
+router.get("/google/consent", (req, res) => {
+  const url = getGoogleAuthUrl(true);
+  res.redirect(url);
 });
 
 router.get("/google/callback", async (req, res) => {
@@ -115,6 +109,9 @@ router.get("/google/callback", async (req, res) => {
 
     let user = await User.findOne({ email });
     if (!user) {
+      if (!tokens.refresh_token) {
+        return res.redirect(`${process.env.VITE_APP_BACKEND_URL}/api/auth/google/consent`);
+      }
       user = await User.create({
         name,
         email,
@@ -122,6 +119,10 @@ router.get("/google/callback", async (req, res) => {
         googleRefreshToken: tokens.refresh_token
       });
     } else {
+      if (!user.googleRefreshToken) {
+        return res.redirect(`${process.env.VITE_APP_BACKEND_URL}/api/auth/google/consent`);
+      }
+
       if (tokens.refresh_token) {
         user.googleRefreshToken = tokens.refresh_token;
         await user.save();
@@ -130,7 +131,7 @@ router.get("/google/callback", async (req, res) => {
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret");
     // res.header("Authorization", token).json({ token ,user});
-    res.redirect(`http://localhost:5173/oauth?token=${token}`);
+    res.redirect(`${process.env.VITE_APP_FRONTEND_URL}/oauth?token=${token}`);
   } catch (err) {
     console.error("Google callback failed:", err);
     res.status(500).json({ message: "Google login failed" });

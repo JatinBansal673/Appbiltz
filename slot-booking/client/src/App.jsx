@@ -5,7 +5,7 @@ import Signup from "./pages/signup";
 import Dashboard from "./pages/dashboard";
 import BookingPage from "./pages/booking";
 import OAuthSuccess from "./components/OAuth";
-import myBookings from "./pages/myBookings";
+import MyBookings from "./pages/myBookings";
 import ProtectedRoute from "./components/protectedRoute";
 
 function App() {
@@ -28,7 +28,7 @@ function App() {
           path="/myBookings"
           element={
             <ProtectedRoute>
-              <myBookings />
+              <MyBookings />
             </ProtectedRoute>
           }
         />

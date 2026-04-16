@@ -1,215 +1,175 @@
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "../api/api";
-import { useNavigate } from "react-router-dom";
+import { MeetingCard } from "../components/meetingCard";
+import { Navbar } from "../components/navbar";
 
 
 export default function Dashboard() {
-  const nav = useNavigate();
   const [meetings, setMeetings] = useState([]);
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [slotStart, setSlotStart] = useState("");
   const [slotEnd, setSlotEnd] = useState("");
-  const [slotInputs, setSlotInputs] = useState({});
   const [connectGoogle, setConnectGoogle] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  
 
   const fetchMeetings = async () => {
     const res = await api.get("/meeting/user");
     setMeetings(res.data);
   };
 
-  useEffect(() => {
-    fetchMeetings();
-  }, []);
-
+  useEffect(() => { fetchMeetings(); }, []);
 
   const createMeeting = async () => {
     if (!title || !slotStart || !slotEnd) {
       alert("Please enter meeting title and slot start/end.");
       return;
     }
-
     try {
-      const res = await api.post("/meeting/create", {
-        title,
-        desc,
-        slots: [{
-          startTime: slotStart, 
-          endTime: slotEnd
-        }]
+      await api.post("/meeting/create", {
+        title, 
+        description: desc,
+        slots: [{ startTime: slotStart, endTime: slotEnd }]
       });
-
       alert("Meeting created successfully");
-      fetchMeetings();
-
     } catch (err) {
-      console.error("FULL ERROR:", err);
-
       if (err.response?.data?.error === "GOOGLE_NOT_CONNECTED") {
         alert("Please connect Google Calendar first");
         setConnectGoogle(true);
         return;
       }
-
       alert(err.response?.data?.message || "Failed to create meeting");
     }
-  
-    setTitle("");
-    setDesc("");
-    setSlotStart("");
-    setSlotEnd("");
-    fetchMeetings();
-  };
-
-  const deleteMeeting = async (id) => {
-    await api.post(`/meeting/cancel/${id}`);
-    fetchMeetings();
-  };
-
-  const deleteSlot = async (slotId) => {
-    await api.post(`/meeting/slot/cancel/${slotId}`);
-    fetchMeetings();
-  };
-
-  const addSlot = async (meetingId) => {
-    const { startTime, endTime } = slotInputs[meetingId] || {};
-    if (!startTime || !endTime) {
-      alert("Enter both start and end times for the new slot.");
-      return;
-    }
-
-    await api.post(`/meeting/slot/add/${meetingId}`, { startTime, endTime });
-    setSlotInputs((prev) => ({ ...prev, [meetingId]: { startTime: "", endTime: "" } }));
-    fetchMeetings();
-  };
-
-  const rescheduleSlot = async (slotId) => {
-    const start = prompt("Enter new start (YYYY-MM-DDTHH:mm)");
-    const end = prompt("Enter new end (YYYY-MM-DDTHH:mm)");
-    await api.post(`/meeting/slot/reschedule/${slotId}`, {
-      startTime: start,
-      endTime: end
-    });
+    setTitle(""); setDesc(""); setSlotStart(""); setSlotEnd("");
+    setShowCreate(false);
     fetchMeetings();
   };
 
   const loginWithGoogle = async () => {
     const res = await api.get("/auth/google");
     window.location.href = res.data.url;
-  }
+  };
 
   return (
-    <div className="p-10">
-      <h1>Dashboard</h1> 
-      <button onClick={() => { 
-        localStorage.removeItem("token")
-        nav("/")
-        }}>Logout</button>
+    <div className="min-h-screen bg-background">
+      {/* Top nav */}
+      <Navbar/>
 
-      <div className="mb-4">
-        <input
-          placeholder="Meeting Title"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-        />
-        <input
-          placeholder="Meeting Desc"
-          value={desc}
-          onChange={e => setDesc(e.target.value)}
-        />
-        <input
-          type="datetime-local"
-          value={slotStart}
-          onChange={e => setSlotStart(e.target.value)}
-        />
-        <input
-          type="datetime-local"
-          value={slotEnd}
-          onChange={e => setSlotEnd(e.target.value)}
-        />
-        <button onClick={createMeeting}>Create Meeting</button>
-      </div> 
-
-        {connectGoogle && (
-          <div className="bg-yellow-100 p-3 mt-4 rounded">
-            <p className="text-sm">
-              Connect Google to create meetings
-            </p>
-            <button
-              className="bg-blue-500 text-white px-3 py-1 mt-2 rounded"
-              onClick={loginWithGoogle}
-            >
-              Connect To Google
-            </button>
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Your Meetings</h1>
+            <p className="text-sm text-muted-foreground mt-1">Manage your meeting types and availability</p>
           </div>
+          <button
+            onClick={() => setShowCreate(!showCreate)}
+            className="px-5 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-all shadow-sm text-sm flex items-center gap-2"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Meeting
+          </button>
+        </div>
+
+        {/* Google connect banner */}
+        {connectGoogle && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-xl bg-warning/10 border border-warning/20 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">⚠️</span>
+              <p className="text-sm font-medium text-warning-foreground">Connect Google Calendar to create meetings with Meet links</p>
+            </div>
+            <button onClick={loginWithGoogle} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90 transition-all">
+              Connect Google
+            </button>
+          </motion.div>
         )}
 
-      {meetings.map(m => (
-        <div key={m._id} className="border p-4 mt-4">
-          <h3>{m.title}</h3>
-          <h4>{m.desc}</h4>
-
-          <button onClick={() => navigator.clipboard.writeText(`http://localhost:5173/book/${m._id}`)}>
-                  Copy Meeting Link
-          </button>
-
-          <button onClick={() => deleteMeeting(m._id)}>Delete</button>
-
-          <div>
-            {m.slots.map(s => (
-              <div key={s.slotId} className="mb-2">
-                <p>{new Date(s.startTime).toLocaleString()}</p>
-                {s.isBooked && (
-                  <p className="text-blue-600">
-                    Meet Link: {s.meetLink}
-                  </p>
-                )}
-
-                <p className={`text-sm ${s.isBooked ? "text-red-500" : "text-green-600"}`}>
-                  {s.isBooked ? "Booked" : "Available"}
-                </p>
-
-                <button onClick={() => deleteSlot(s.slotId)}>
-                  Delete Slot
-                </button>
-
-                <button onClick={() =>
-                  rescheduleSlot(s.slotId)
-                }>
-                  Reschedule
-              </button>
+        {/* Create meeting form */}
+        <AnimatePresence>
+          {showCreate && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden mb-8"
+            >
+              <div className="p-6 rounded-2xl bg-card border border-border">
+                <h2 className="text-lg font-semibold text-foreground mb-4">Create a new meeting</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1.5">Title</label>
+                    <input
+                      placeholder="e.g. 30-min Discovery Call"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1.5">Description</label>
+                    <input
+                      placeholder="What's this meeting about?"
+                      value={desc}
+                      onChange={(e) => setDesc(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1.5">Slot start</label>
+                    <input
+                      type="datetime-local"
+                      value={slotStart}
+                      onChange={(e) => setSlotStart(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1.5">Slot end</label>
+                    <input
+                      type="datetime-local"
+                      value={slotEnd}
+                      onChange={(e) => setSlotEnd(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="mt-5 flex gap-3">
+                  <button onClick={createMeeting} className="px-6 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-all text-sm">
+                    Create Meeting
+                  </button>
+                  <button onClick={() => setShowCreate(false)} className="px-6 py-2.5 border border-border text-foreground rounded-xl hover:bg-accent transition-all text-sm">
+                    Cancel
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          <div className="mt-4">
-            <h4>Add slot</h4>
-            <input
-              type="datetime-local"
-              value={slotInputs[m._id]?.startTime || ""}
-              onChange={e => setSlotInputs(prev => ({
-                ...prev,
-                [m._id]: {
-                  ...prev[m._id],
-                  startTime: e.target.value
-                }
-              }))}
-            />
-            <input
-              type="datetime-local"
-              value={slotInputs[m._id]?.endTime || ""}
-              onChange={e => setSlotInputs(prev => ({
-                ...prev,
-                [m._id]: {
-                  ...prev[m._id],
-                  endTime: e.target.value
-                }
-              }))}
-            />
-            <button onClick={() => addSlot(m._id)}>Add Slot</button>
+        {/* Meetings list */}
+        {meetings.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-accent flex items-center justify-center mb-4">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-foreground">No meetings yet</h3>
+            <p className="text-sm text-muted-foreground mt-1">Create your first meeting type to get started</p>
           </div>
-        </div>
-      ))}
+        ) : (
+          <MeetingCard meetings={meetings} fetchMeetings={fetchMeetings}/>
+        )}
+      </div>
     </div>
   );
 }

@@ -27,6 +27,7 @@ router.get("/:id", async (req, res) => {
 
   res.json({
     meetingId: meeting._id,
+    description: meeting.description,
     title: meeting.title,
     slots: availableSlots
   });
@@ -146,7 +147,10 @@ router.post("/slot/reschedule/:slotId", auth, async (req, res) => {
   if (!slot) {
     return res.status(404).json({ message: "Slot not found" });
   }
-
+  const oldSlot = {
+    startTime: slot.startTime,
+    endTime: slot.endTime
+  };
   try {
     if (slot.eventId) {
       await updateMeetEvent(
@@ -174,6 +178,7 @@ router.post("/slot/reschedule/:slotId", auth, async (req, res) => {
         ...emailTemplates.bookingRescheduleGuest(
           booking.guest,
           meeting,
+          oldSlot,
           slot
         )
       });

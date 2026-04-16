@@ -1,8 +1,8 @@
 const formatDateTime = (value) => {
-  const date = value instanceof Date ? value : new Date(value);
+  const date = value instanceof Date ? value : new Date(value).toLocaleString();
   if (Number.isNaN(date.getTime())) return String(value);
   return date.toLocaleString("en-US", {
-    timeZone: "UTC",
+    timeZone: "Asia/Kolkata",
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -14,7 +14,7 @@ const formatDateTime = (value) => {
 };
 
 const verificationEmail = (name, token) => {
-  const baseUrl = process.env.VITE_APP_BACKEND_URL || process.env.FRONTEND_URL || "http://localhost:4000";
+  const baseUrl = process.env.VITE_APP_BACKEND_URL;
   const verifyUrl = `${baseUrl}/api/v1/auth/verify/${token}`;
   return {
     subject: "Verify your email",
