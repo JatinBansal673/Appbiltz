@@ -30,6 +30,9 @@ const getGoogleAuthUrl = (forceConsent) => {
 // Signup
 router.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
+  if(!name || ! email || !password) {
+    return res.status(400).json({message: "All fields are mandatory"})
+  }
 
   const existingUser = await User.findOne({ email });
   if (existingUser) return res.status(400).json({ message: "Email already in use" });
@@ -69,13 +72,16 @@ router.get("/verify/:token", async (req, res) => {
 
 // Login
 router.post("/login", async (req, res) => {
+  if(!req.body.email || !req.body.password) {
+    return res.status(400).json({message: "Please fill in the required details"});
+  }
   const user = await User.findOne({ email: req.body.email });
-  if (!user) return res.status(400).json("User not found");
+  if (!user) return res.status(400).json({message: "User not found"});
 
-  if (!user.isVerified) return res.status(401).json("Please verify your email first");
+  if (!user.isVerified) return res.status(401).json({message:"Please verify your email first"});
 
   const isMatch = await bcrypt.compare(req.body.password, user.password);
-  if (!isMatch) return res.status(400).json("Invalid password");
+  if (!isMatch) return res.status(400).json({meaasge:"Invalid password"});
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret");
   res.header("Authorization", token).json({ token });
@@ -110,7 +116,7 @@ router.get("/google/callback", async (req, res) => {
     let user = await User.findOne({ email });
     if (!user) {
       if (!tokens.refresh_token) {
-        return res.redirect(`${process.env.VITE_APP_BACKEND_URL}/api/auth/google/consent`);
+        return res.redirect(`${process.env.VITE_APP_BACKEND_URL}/api/v1/auth/google/consent`);
       }
       user = await User.create({
         name,
@@ -120,7 +126,7 @@ router.get("/google/callback", async (req, res) => {
       });
     } else {
       if (!user.googleRefreshToken) {
-        return res.redirect(`${process.env.VITE_APP_BACKEND_URL}/api/auth/google/consent`);
+        return res.redirect(`${process.env.VITE_APP_BACKEND_URL}/api/v1/auth/google/consent`);
       }
 
       if (tokens.refresh_token) {

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "../api/api";
 import { MeetingCard } from "../components/meetingCard";
 import { Navbar } from "../components/navbar";
+import ErrorModal from "../components/errorModal";
 
 
 export default function Dashboard() {
@@ -13,6 +14,8 @@ export default function Dashboard() {
   const [slotEnd, setSlotEnd] = useState("");
   const [connectGoogle, setConnectGoogle] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
+  const [error,setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   
 
   const fetchMeetings = async () => {
@@ -24,7 +27,7 @@ export default function Dashboard() {
 
   const createMeeting = async () => {
     if (!title || !slotStart || !slotEnd) {
-      alert("Please enter meeting title and slot start/end.");
+      setError({message:"Please fill in all the required details",status:400});
       return;
     }
     try {
@@ -33,14 +36,14 @@ export default function Dashboard() {
         description: desc,
         slots: [{ startTime: slotStart, endTime: slotEnd }]
       });
-      alert("Meeting created successfully");
+      setError({message:"Meeting created successfully",status:201});
     } catch (err) {
       if (err.response?.data?.error === "GOOGLE_NOT_CONNECTED") {
-        alert("Please connect Google Calendar first");
+        setError({message:"Please connect Google Calendar first", status:err.response?.status});
         setConnectGoogle(true);
         return;
       }
-      alert(err.response?.data?.message || "Failed to create meeting");
+      setError({message: err.response?.data?.message || "Failed to create meeting", status: err.response?.status});
     }
     setTitle(""); setDesc(""); setSlotStart(""); setSlotEnd("");
     setShowCreate(false);
@@ -48,11 +51,19 @@ export default function Dashboard() {
   };
 
   const loginWithGoogle = async () => {
-    const res = await api.get("/auth/google");
-    window.location.href = res.data.url;
+    setLoading(true);
+    try {
+      const res = await api.get('/auth/google');
+      window.location.href = res.data.url;
+    }catch(err) {
+      setError({message: err.response?.data?.message || "Login Failed", status: err.response?.status});
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
+    <>
     <div className="min-h-screen bg-background">
       {/* Top nav */}
       <Navbar/>
@@ -171,5 +182,7 @@ export default function Dashboard() {
         )}
       </div>
     </div>
+    <ErrorModal open={!!error} message={error?.message} status={error?.status} onClose={() => setError(null)} />
+    </>
   );
 }

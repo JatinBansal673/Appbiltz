@@ -2,11 +2,13 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../api/api";
+import ErrorModal from "../components/errorModal";
 
 export default function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const login = async () => {
     setLoading(true);
@@ -15,18 +17,26 @@ export default function Login() {
       localStorage.setItem("token", res.data.token);
       navigate("/dashboard");
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
+      setError({message: err.response?.data?.message || "Login Failed", status: err.response?.status});
     } finally {
       setLoading(false);
     }
   };
 
   const loginWithGoogle = async () => {
-    const res = await api.get('/auth/google');
-    window.location.href = res.data.url;
+    setLoading(true);
+    try {
+      const res = await api.get('/auth/google');
+      window.location.href = res.data.url;
+    }catch(err) {
+      setError({message: err.response?.data?.message || "Login Failed", status: err.response?.status});
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
+    <>
     <div className="min-h-screen bg-background flex">
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-primary relative overflow-hidden items-center justify-center">
@@ -119,5 +129,7 @@ export default function Login() {
         </motion.div>
       </div>
     </div>
+    <ErrorModal open={!!error} message={error?.message} status={error?.status} onClose={() => setError(null)} />
+    </>
   );
 }

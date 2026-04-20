@@ -2,9 +2,13 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import api from "../api/api";
 import { Navbar } from "../components/navbar";
+import ErrorModal from "../components/errorModal";
 
 export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
+  const [error,setError]=useState(null);
+  const [confirmCancel, setConfirmCancel] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   const fetchBookings = async () => {
     const res = await api.get("/booking/myBookings");
@@ -14,11 +18,17 @@ export default function MyBookings() {
   useEffect(() => { fetchBookings(); }, []);
 
   const cancel = async (id) => {
-    await api.post("/booking/cancel", { bookingId: id });
-    fetchBookings();
+    try {
+      await api.post("/booking/cancel", { bookingId: id });
+      fetchBookings();
+      setSuccessMessage("Booking cancelled successfully.");
+    } catch(err) {
+      setError({message: err.response?.data?.message || "Cancellation Failed", status: err.response?.status});
+    }
   };
 
   return (
+    <>
     <div className="min-h-screen bg-background">
       {/* Nav */}
       <Navbar/>
@@ -56,7 +66,7 @@ export default function MyBookings() {
                   </div>
                 </div>
                 <button
-                  onClick={() => cancel(b._id)}
+                  onClick={() => setConfirmCancel(b._id)}
                   className="px-4 py-2 text-xs font-medium text-destructive border border-destructive/20 rounded-lg hover:bg-destructive/10 transition-all"
                 >
                   Cancel
@@ -67,5 +77,29 @@ export default function MyBookings() {
         )}
       </div>
     </div>
+    {/* Confirmation Modal */}
+    <ErrorModal 
+        open={!!confirmCancel} 
+        variant="warning" 
+        title="Confirm Cancellation" 
+        message="Are you sure you want to cancel this booking?" 
+        type="confirm" 
+        onConfirm={() => {
+            cancel(confirmCancel);
+            setConfirmCancel(null);
+        }} 
+        onClose={() => setConfirmCancel(null)} 
+        confirmText="Yes, Cancel" 
+        cancelText="No" 
+    />
+    {/* Success Modal */}
+    <ErrorModal 
+        open={!!successMessage} 
+        variant="success" 
+        message={successMessage} 
+        onClose={() => setSuccessMessage(null)} 
+    />
+    <ErrorModal open={!!error} message={error?.message} status={error?.status} onClose={() => setError(null)} />
+    </>
   );
 }

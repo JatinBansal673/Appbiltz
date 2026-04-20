@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import api from '../api/api';
 import { motion, AnimatePresence } from "framer-motion";
+import ErrorModal from './errorModal';
 
 
 export const MeetingCard = ({meetings,fetchMeetings}) => {
@@ -9,33 +10,56 @@ export const MeetingCard = ({meetings,fetchMeetings}) => {
     const [copied, setCopied] = useState(null);
     const [rescheduleInputs, setRescheduleInputs] = useState({});
     const [slotInputs, setSlotInputs] = useState({});
+    const [error,setError] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState(null);
+    const [successMessage, setSuccessMessage] = useState(null);
 
     const deleteMeeting = async (id) => {
-        await api.post(`/meeting/cancel/${id}`);
-        fetchMeetings();
+        try {
+            await api.post(`/meeting/cancel/${id}`);
+            fetchMeetings();
+            setSuccessMessage("Meeting cancelled successfully.");
+        } catch(err) {
+            setError({message: err.response?.data?.message || "Unable to delete meeting", status: err.response?.status});
+        }
     };
 
 
     const deleteSlot = async (slotId) => {
-        await api.post(`/meeting/slot/cancel/${slotId}`);
-        fetchMeetings();
+        try {
+            await api.post(`/meeting/slot/cancel/${slotId}`);
+            fetchMeetings();
+            setSuccessMessage("Slot cancelled successfully.");
+        } catch(err) {
+            setError({message: err.response?.data?.message || "Unable to delete slot", status: err.response?.status});
+        }
+        
     };
 
     const addSlot = async (meetingId) => {
         const { startTime, endTime } = slotInputs[meetingId] || {};
-        if (!startTime || !endTime) { alert("Enter both start and end times."); return; }
-        await api.post(`/meeting/slot/add/${meetingId}`, { startTime, endTime });
-        setSlotInputs((prev) => ({ ...prev, [meetingId]: { startTime: "", endTime: "" } }));
-        fetchMeetings();
+        if (!startTime || !endTime) { setError("Enter both start and end times."); return; }
+        try {
+            await api.post(`/meeting/slot/add/${meetingId}`, { startTime, endTime });
+            setSlotInputs((prev) => ({ ...prev, [meetingId]: { startTime: "", endTime: "" } }));
+            fetchMeetings();
+        } catch(err) {
+            setError({message: err.response?.data?.message || "Unable to add slot",status:err.response?.status});
+        }
     };
 
     const rescheduleSlot = async (slotId) => {
         const { startTime, endTime } = rescheduleInputs[slotId] || {};
-        if (!startTime || !endTime) { alert("Please select new start and end time"); return; }
-        await api.post(`/meeting/slot/reschedule/${slotId}`, { startTime, endTime });
-        setRescheduleInputs((prev) => ({ ...prev, [slotId]: { startTime: "", endTime: "" } }));
-        setRescheduleOpen((prev) => ({ ...prev, [slotId]: false }));
-        fetchMeetings();
+        if (!startTime || !endTime) { setError("Please select new start and end time"); return; }
+        try {
+            await api.post(`/meeting/slot/reschedule/${slotId}`, { startTime, endTime });
+            setRescheduleInputs((prev) => ({ ...prev, [slotId]: { startTime: "", endTime: "" } }));
+            setRescheduleOpen((prev) => ({ ...prev, [slotId]: false }));
+            fetchMeetings();
+        } catch(err) {
+            setError({message:err.response?.data?.message || "Unable to reschedule slot",status: err.response?.status});
+        }
+        
     };
 
     const copyLink = (id) => {
@@ -45,6 +69,7 @@ export const MeetingCard = ({meetings,fetchMeetings}) => {
     };
 
   return (
+    <>
     <div className="grid gap-5">
     {meetings.map((m) => (
         <motion.div
@@ -74,7 +99,7 @@ export const MeetingCard = ({meetings,fetchMeetings}) => {
                 )}
             </button>
             <button
-                onClick={() => deleteMeeting(m._id)}
+                onClick={() => setConfirmDelete({type: 'meeting', id: m._id})}
                 className="px-3 py-1.5 text-xs font-medium text-destructive border border-destructive/20 rounded-lg hover:bg-destructive/10 transition-all"
             >
                 Delete
@@ -112,7 +137,7 @@ export const MeetingCard = ({meetings,fetchMeetings}) => {
                     {rescheduleOpen[s.slotId] ? "Cancel" : "Reschedule"}
                     </button>
                     <button
-                    onClick={() => deleteSlot(s.slotId)}
+                    onClick={() => setConfirmDelete({type: 'slot', id: s.slotId})}
                     className="text-xs text-destructive hover:text-destructive/80 transition-colors"
                     >
                     Remove
@@ -196,5 +221,33 @@ export const MeetingCard = ({meetings,fetchMeetings}) => {
         </motion.div>
     ))}
     </div>
+    {/* Confirmation Modal */}
+    <ErrorModal 
+        open={!!confirmDelete} 
+        variant="warning" 
+        title="Confirm Cancellation" 
+        message={`Are you sure you want to cancel this ${confirmDelete?.type}?`} 
+        type="confirm" 
+        onConfirm={() => {
+            if (confirmDelete?.type === 'meeting') {
+                deleteMeeting(confirmDelete.id);
+            } else if (confirmDelete?.type === 'slot') {
+                deleteSlot(confirmDelete.id);
+            }
+            setConfirmDelete(null);
+        }} 
+        onClose={() => setConfirmDelete(null)} 
+        confirmText="Yes, Cancel" 
+        cancelText="No" 
+    />
+    {/* Success Modal */}
+    <ErrorModal 
+        open={!!successMessage} 
+        variant="success" 
+        message={successMessage} 
+        onClose={() => setSuccessMessage(null)} 
+    />
+    <ErrorModal open={!!error} message={error?.message} status={error?.status} onClose={() => setError(null)} />
+    </>
   )
 }

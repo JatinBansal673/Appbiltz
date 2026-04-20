@@ -46,7 +46,7 @@ const wrap = ({ preheader = "", accent = COLORS.brand, badge = "", title, intro 
         <!-- Header -->
         <tr><td style="background:linear-gradient(135deg, ${accent} 0%, ${COLORS.brandDark} 100%);padding:28px 32px;">
           <table width="100%"><tr>
-            <td style="color:#fff;font-size:20px;font-weight:700;letter-spacing:-0.01em;">📅 Slot Booking</td>
+            <td style="color:#fff;font-size:20px;font-weight:700;letter-spacing:-0.01em;">Meetify</td>
             <td align="right" style="color:rgba(255,255,255,0.85);font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;">${badge}</td>
           </tr></table>
         </td></tr>

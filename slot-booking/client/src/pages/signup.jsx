@@ -2,30 +2,39 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../api/api";
+import ErrorModal from "../components/errorModal";
 
 export default function Signup() {
   const nav=useNavigate();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const signup = async () => {
     setLoading(true);
     try {
       await api.post("/auth/signup", form);
-      alert("Check email to verify");
-      nav('/login')
+      setError({message: "Check email to verify", status:201});
     } catch (err) {
-      alert(err.response?.data?.message || "Signup failed");
+      setError({message: err.response?.data?.message || "Signup failed", status: err.response?.status});
     } finally {
       setLoading(false);
     }
   };
   const signUpWithGoogle = async () => {
-    const res = await api.get('/auth/google');
-    window.location.href = res.data.url;
+    setLoading(true);
+    try {
+      const res = await api.get('/auth/google');
+      window.location.href = res.data.url;
+    }catch(err) {
+      setError({message: err.response?.data?.message || "Signup failed", status: err.response?.status});
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
+    <>
     <div className="min-h-screen bg-background flex">
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-primary relative overflow-hidden items-center justify-center">
@@ -127,5 +136,10 @@ export default function Signup() {
         </motion.div>
       </div>
     </div>
+    <ErrorModal open={!!error} message={error?.message} status={error?.status} onClose={() => {
+      setError(null);
+      if (error?.status === 201) nav("/login");
+    }} />
+    </>
   );
 }
