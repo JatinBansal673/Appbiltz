@@ -33,8 +33,8 @@ export default function MyBookings() {
       {/* Nav */}
       <Navbar/>
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold text-foreground mb-1">My Bookings</h1>
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <h1 className="text-2xl font-bold text-foreground mb-1">Your Bookings</h1>
         <p className="text-sm text-muted-foreground mb-8">Meetings booked with others</p>
 
         {bookings.length === 0 ? (

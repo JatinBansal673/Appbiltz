@@ -65,7 +65,7 @@ export const Navbar = () => {
         {/* myBookings */}
         {location.pathname==='/myBookings' && (
             <nav className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-sm">
-                <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+                <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
                     <Link to="/dashboard" className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary-foreground">
