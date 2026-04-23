@@ -70,6 +70,20 @@ export const MeetingCard = ({meetings,fetchMeetings}) => {
 
   return (
     <>
+    {meetings.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-accent flex items-center justify-center mb-4">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-foreground">No meetings yet</h3>
+            <p className="text-sm text-muted-foreground mt-1">Create your first meeting type to get started</p>
+          </div>
+        ):(
     <div className="grid gap-5">
     {meetings.map((m) => (
         <motion.div
@@ -221,6 +235,7 @@ export const MeetingCard = ({meetings,fetchMeetings}) => {
         </motion.div>
     ))}
     </div>
+    )}
     {/* Confirmation Modal */}
     <ErrorModal 
         open={!!confirmDelete} 
