@@ -168,7 +168,7 @@ export const MeetingCard = ({meetings,fetchMeetings}) => {
                     exit={{ opacity: 0, height: 0 }}
                     className="overflow-hidden"
                     >
-                    <div className="mt-3 pt-3 border-t border-border flex flex-wrap items-end gap-3">
+                    <div className="mt-3 p-3 border-t border-border flex flex-wrap items-end gap-3">
                         <div>
                         <label className="block text-xs text-muted-foreground mb-1">New start</label>
                         <input
