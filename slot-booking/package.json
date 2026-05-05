@@ -6,9 +6,10 @@
     "client": "cd client && vite",
     "server": "nodemon server/server.js",
     "dev": "concurrently -n \"server,client\" -c \"bgBlue,bgYellow\" \"npm run server\" \"npm run client\"",
-    "build": "vite build",
+    "build": "cd client && npm install && npm run build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "node server/server.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
@@ -39,6 +40,6 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
-    "vite": "^8.0.4"
+    "vite": "^8.0.10"
   }
 }
