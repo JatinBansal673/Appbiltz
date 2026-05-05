@@ -13,7 +13,7 @@ export default function OAuthSuccess() {
 
       setTimeout(() => {
         navigate("/dashboard");
-      }, 100);
+      }, 300);
     } else {
       navigate("/login");
     }
